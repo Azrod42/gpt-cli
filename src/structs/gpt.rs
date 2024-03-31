@@ -1,11 +1,16 @@
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE};
 use serde::{Deserialize, Serialize};
-use std::fmt::{self, Display, Formatter};
+use std::{
+    fmt::{self, Display, Formatter},
+    vec,
+};
 use termimad::{minimad::TextTemplate, print_text, MadSkin};
 
-use crate::reqwest::Client;
+use crate::{file, reqwest::Client};
 
-#[derive(Serialize, Deserialize, Debug)]
+use super::cli::Cli;
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct GptMessage {
     pub role: String,
     pub content: String,
@@ -19,7 +24,7 @@ impl Display for GptMessage {
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct GptResponseChoice {
     pub index: i32,
     pub message: GptMessage,
@@ -32,11 +37,18 @@ impl Display for GptResponseChoice {
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct GptResponseUsage {
     pub prompt_tokens: u16,
     pub completion_tokens: u16,
     pub total_tokens: u16,
+}
+impl GptResponseUsage {
+    pub fn add(&mut self, new: &GptResponseUsage) {
+        self.prompt_tokens += new.prompt_tokens;
+        self.completion_tokens += new.completion_tokens;
+        self.total_tokens += new.total_tokens;
+    }
 }
 
 impl Display for GptResponseUsage {
@@ -50,7 +62,7 @@ impl Display for GptResponseUsage {
             r#"
     |:-:|:-:|:-:|
     |**Prompt tokens**|**Response tokens**|**Total**|
-    |-:|:-:|:-|
+    |:-:|:-:|:-:|
     ${module-rows
     |**${prompt}**|**${cmp}**|${total}|
     }
@@ -68,7 +80,7 @@ impl Display for GptResponseUsage {
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct GptResponse {
     pub id: String,
     pub object: String,
@@ -100,14 +112,16 @@ pub struct Gpt {
     openai_key: String,
     pub default_model: String,
     pub usage: bool,
+    pub append: bool,
 }
 
 impl Gpt {
-    pub fn new(openai_key: String, usage: bool) -> Self {
+    pub fn new(openai_key: String, args: Cli) -> Self {
         Gpt {
             default_model: String::from("gpt-3.5-turbo-0125"),
             openai_key,
-            usage,
+            usage: false,
+            append: args.append,
         }
     }
 
@@ -125,6 +139,29 @@ impl Gpt {
         match response.status() {
             reqwest::StatusCode::OK => match response.json::<GptResponse>().await {
                 Ok(data) => {
+                    // Log History
+                    file::remove_tmp_file(&client.chat_history_fn);
+                    if client.gpt.append && gpt_body.messages.is_some() {
+                        let mut hist = gpt_body.messages.unwrap();
+                        hist.insert(hist.len() - 1, data.choices[0].message.clone());
+                        file::store_tmp_file(&hist, &client.chat_history_fn);
+                    } else {
+                        let hist: Vec<GptMessage> = vec![data.choices[0].message.clone()];
+                        file::store_tmp_file(&hist, &client.chat_history_fn);
+                    }
+                    // Log usage
+                    let history = file::read_tmp_file::<GptResponseUsage>(&client.usage_log_fn);
+                    match history {
+                        Some(mut hist) => {
+                            hist.add(&data.usage);
+                            file::remove_tmp_file(&client.usage_log_fn);
+                            file::store_tmp_file(&hist, &client.usage_log_fn);
+                        }
+                        None => {
+                            file::store_tmp_file(&data.usage, &client.usage_log_fn);
+                        }
+                    };
+
                     if client.gpt.usage {
                         println!("{}", data.usage);
                     }

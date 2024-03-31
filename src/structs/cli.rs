@@ -18,6 +18,9 @@ impl ToString for ComletionModels {
 }
 
 #[derive(Args, Debug, Clone)]
+pub struct UsageArgs {}
+
+#[derive(Args, Debug, Clone)]
 pub struct GptCompletionArgs {
     // #[clap(raw = true)]
     pub prompt: Vec<String>,
@@ -44,6 +47,14 @@ pub struct GptCompletionArgs {
 
     #[clap(long, value_name = "0 - 1.0")]
     pub top_p: Option<f32>,
+
+    ///Continue conversation with previous message
+    #[clap(short, long, default_value_t = false)]
+    pub append: bool,
+
+    //Display the usage in token of this request.
+    #[clap(short, long, default_value_t = false)]
+    pub usage: bool,
 }
 
 #[derive(Subcommand, Debug, Clone)]
@@ -55,17 +66,20 @@ pub enum Command {
     ///Translation pre-promt (default language: en)
     T(GptCompletionArgs),
 
-    ///Correction pre-promt (default language: fr)
+    ///Correction pre-promt (default language: en)
     C(GptCompletionArgs),
+
+    ///Correction pre-promt (default language: en)
+    Usage(UsageArgs),
 }
 
-#[derive(Parser)]
+#[derive(Parser, Clone)]
 #[command(author, version, about, long_about = None)]
 #[clap(propagate_version = false)]
 pub struct Cli {
-    ///Display the number of tokens used
+    //Continue the previous conversation
     #[arg(short, long, default_value_t = false)]
-    pub usage: bool,
+    pub append: bool,
 
     #[command(subcommand)]
     pub cmd: Command,
