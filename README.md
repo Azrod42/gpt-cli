@@ -1,3 +1,7 @@
+# gpt-cli
+
+gpt-cli is a command line interface for `Chat GPT` api.
+It allows you to interact with `Chat GPT` from the command line.
 
 ## Build / Install
 
