@@ -20,7 +20,7 @@ Commands:
   d      Default chat gpt
   t      Translation pre-promt (default language: en)
   c      Correction pre-promt (default language: en)
-  usage  Correction pre-promt (default language: en)
+  usage  Display the total usage of tokens
   help   Print this message or the help of the given subcommand(s)
 
 Options:

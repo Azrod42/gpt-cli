@@ -69,7 +69,7 @@ pub enum Command {
     ///Correction pre-promt (default language: en)
     C(GptCompletionArgs),
 
-    ///Correction pre-promt (default language: en)
+    ///Display the total usage of tokens.
     Usage(UsageArgs),
 }
 
