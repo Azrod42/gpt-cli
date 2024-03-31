@@ -1,3 +1,14 @@
+
+## Build / Install
+
+To build and install the project, run the following command:
+
+```bash
+cargo install --path .
+```
+
+## Usage
+
 ```bash
 Usage: gpt-cli [OPTIONS] <COMMAND>
 
