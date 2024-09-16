@@ -2,17 +2,19 @@ use clap::{Args, Parser, Subcommand, ValueEnum};
 
 #[derive(ValueEnum, Debug, Clone)]
 pub enum ComletionModels {
-    Gpt3Turbo,
-    Gpt4Pre,
-    Gpt4,
+    Gpt4o,
+    Gpt4oMini,
+    O1Mini,
+    O1Preview,
 }
 
 impl ToString for ComletionModels {
     fn to_string(&self) -> String {
         match self {
-            ComletionModels::Gpt3Turbo => "gpt-3.5-turbo-0125".to_string(),
-            ComletionModels::Gpt4Pre => "gpt-4-0125-preview".to_string(),
-            ComletionModels::Gpt4 => "gpt-4".to_string(),
+            ComletionModels::Gpt4o => "gpt-4o".to_string(),
+            ComletionModels::Gpt4oMini => "gpt-4o-mini".to_string(),
+            ComletionModels::O1Preview => "o1-preview".to_string(),
+            ComletionModels::O1Mini => "o1-mini".to_string(),
         }
     }
 }

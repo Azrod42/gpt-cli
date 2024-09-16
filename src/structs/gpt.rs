@@ -118,7 +118,7 @@ pub struct Gpt {
 impl Gpt {
     pub fn new(openai_key: String, args: Cli) -> Self {
         Gpt {
-            default_model: String::from("gpt-3.5-turbo-0125"),
+            default_model: String::from("gpt-4o-mini"),
             openai_key,
             usage: false,
             append: args.append,
