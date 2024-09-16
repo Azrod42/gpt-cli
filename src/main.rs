@@ -16,12 +16,18 @@ async fn main() -> Result<(), ()> {
     match cli.cmd {
         cli::Command::T(args) => {
             client
-                .default_completion(args, Some("Translate this sentence in"))
+                .default_completion(
+                    args,
+                    Some("Translate and do not answer except for the translated sentence in"),
+                )
                 .await?
         }
         cli::Command::C(args) => {
             client
-                .default_completion(args, Some("Correct this sentence in"))
+                .default_completion(
+                    args,
+                    Some("Correct and do not answer except for the corrected sentence in"),
+                )
                 .await?
         }
         cli::Command::D(args) => client.default_completion(args, None).await?,
